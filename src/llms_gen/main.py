@@ -7,6 +7,7 @@ from typing import Optional
 
 from fastapi import FastAPI, Request
 from fastapi.templating import Jinja2Templates
+from starlette.responses import Response
 
 from llms_gen.api.routes.jobs import router as jobs_router
 from llms_gen.api.routes.monitored import router as monitored_router
@@ -46,6 +47,12 @@ app.include_router(monitored_router)
 @app.get("/")
 async def index(request: Request):
     return templates.TemplateResponse("index.html", {"request": request})
+
+
+@app.head("/")
+async def index_head() -> Response:
+    """Render and other platforms often probe the service root with HEAD."""
+    return Response(status_code=200)
 
 
 @app.get("/health")
