@@ -312,7 +312,9 @@
     .input-wrap input[type="text"] {
       padding-right: 2.5rem;
     }
-    input[type="text"], input[type="number"] {
+    input[type="text"],
+    input[type="number"],
+    input[type="password"] {
       width: 100%;
       padding: 0.85rem 1rem;
       border-radius: var(--radius-sm);
@@ -580,6 +582,7 @@
       transition: transform 0.2s;
     }
     .webhook-help-drawer[open] .chev { transform: rotate(90deg); }
+    .api-key-advanced { margin-top: 1rem; }
     .webhook-help-panel {
       padding: 1rem 1.15rem 1.15rem;
       font-size: 0.875rem;
@@ -589,6 +592,16 @@
       overflow-y: auto;
       overscroll-behavior: contain;
     }
+    .webhook-help-panel.api-key-advanced-panel {
+      max-height: none;
+      overflow: visible;
+    }
+    .api-key-advanced-panel .field-label { margin-bottom: 0.45rem; }
+    .api-key-advanced-panel .input-wrap { margin-top: 0.2rem; }
+    .api-key-advanced-panel .input-wrap input[type="password"] {
+      min-height: 48px;
+    }
+    .api-key-advanced-panel .hint { margin: 0.65rem 0 0; }
     .webhook-help-section {
       padding: 0.85rem 0;
       border-bottom: 1px solid var(--border);
@@ -831,11 +844,30 @@
           <p id="url-hint" class="hint" style="margin:0.4rem 0 0">Tip: bare domains work. We default to HTTPS.</p>
 
           {% if api_key_required %}
-          <div class="api-key-block" style="margin-top:1rem;padding:0.85rem 1rem;border-radius:8px;border:1px solid var(--border);background:var(--card2)">
-            <label class="field-label" for="api-key">Operator API key</label>
-            <input id="api-key" name="api-key" type="password" autocomplete="off" placeholder="Required for /api on this server" aria-describedby="api-key-hint" style="width:100%;max-width:28rem" />
-            <p id="api-key-hint" class="hint" style="margin:0.35rem 0 0">Stored in this tab’s <code>sessionStorage</code> only (not sent to third parties). Use <code>X-LLMS-GEN-API-Key</code> or <code>Authorization: Bearer</code> from scripts.</p>
-          </div>
+          <details class="webhook-help-drawer api-key-advanced" id="api-key-advanced">
+            <summary>
+              <span class="help-q" aria-hidden="true">A</span>
+              <span class="webhook-help-summary-text">Advanced — operator API access</span>
+              <span class="chev" aria-hidden="true">▸</span>
+            </summary>
+            <div class="webhook-help-panel api-key-advanced-panel" role="region" aria-label="Operator API key">
+              <label class="field-label" for="api-key">API key</label>
+              <div class="input-wrap">
+                <input
+                  id="api-key"
+                  name="api-key"
+                  type="password"
+                  autocomplete="off"
+                  placeholder="Paste key to use /api from this browser"
+                  aria-describedby="api-key-hint"
+                />
+              </div>
+              <p id="api-key-hint" class="hint">
+                Stored in this tab’s <code>sessionStorage</code> only (not sent to third parties). From scripts, send
+                <code>X-LLMS-GEN-API-Key</code> or <code>Authorization: Bearer</code>.
+              </p>
+            </div>
+          </details>
           {% endif %}
 
           <div class="max-pages-block">
@@ -1134,6 +1166,8 @@
         const k = ((ak && ak.value) || sessionStorage.getItem("llms_gen_api_key") || "").trim();
         if (!k) {
           setStatus("fail", "Enter the operator API key — this server requires it for all /api access.");
+          const adv = $("api-key-advanced");
+          if (adv && "open" in adv) adv.open = true;
           if (ak) ak.focus();
           return;
         }
