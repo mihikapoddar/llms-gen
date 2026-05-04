@@ -903,12 +903,18 @@
                         </tr>
                         <tr>
                           <td><code>artifact_path</code></td>
-                          <td>URL or path to fetch the file (set public base URL in server config for an absolute link)</td>
+                          <td>
+                            {% if public_base_url %}
+                            Absolute URL to the file, e.g. <code>{{ public_base_url }}/api/artifacts/{{ "{job_id}" }}</code> (same <code>job_id</code> as in the JSON).
+                            {% else %}
+                            Relative path <code>/api/artifacts/{{ "{job_id}" }}</code>. Set env <code>LLMS_GEN_PUBLIC_BASE_URL</code> (e.g. <code>https://your-app.example.com</code>) so webhooks include a full URL receivers can fetch without knowing this host.
+                            {% endif %}
+                          </td>
                         </tr>
                       </tbody>
                     </table>
                     </div>
-                    <p class="webhook-fetch-hint">Download the generated file with <code>GET /api/artifacts/{job_id}</code> using the same <code>job_id</code> as in the JSON.</p>
+                    <p class="webhook-fetch-hint">Download the generated file with <code>GET /api/artifacts/{job_id}</code> using the same <code>job_id</code> as in the JSON{% if public_base_url %} (full URL: <code>{{ public_base_url }}/api/artifacts/{{ "{job_id}" }}</code>){% endif %}.</p>
                   </div>
                   <div class="webhook-help-section">
                     <h4>Zapier</h4>

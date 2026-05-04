@@ -1,5 +1,6 @@
 from functools import lru_cache
 
+from pydantic import field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -27,6 +28,16 @@ class Settings(BaseSettings):
     monitor_poll_interval_s: int = 300
     # Optional absolute base for artifact links in webhook payloads, e.g. https://your-app.example.com
     public_base_url: str = ""
+
+    @field_validator("public_base_url", mode="before")
+    @classmethod
+    def normalize_public_base_url(cls, v: object) -> str:
+        if v is None:
+            return ""
+        s = str(v).strip()
+        if not s:
+            return ""
+        return s.rstrip("/")
 
 
 @lru_cache

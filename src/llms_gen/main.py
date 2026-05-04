@@ -58,6 +58,7 @@ async def index(request: Request):
         {
             "request": request,
             "expose_openapi": s.expose_openapi,
+            "public_base_url": s.public_base_url,
         },
     )
 
