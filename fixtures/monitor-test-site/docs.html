@@ -3,8 +3,8 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Documentation — Monitor Test Co</title>
-  <meta name="description" content="Docs for the fake API: authentication, rate limits, and webhook payloads used only in tests." />
+  <title>Documentation — Drastic Fixture Labs API (fake)</title>
+  <meta name="description" content="Expanded fake API reference: resources, error codes, pagination limits, and deprecation notices that exist solely to change extracted documentation text." />
 </head>
 <body>
   <header>
@@ -21,11 +21,26 @@
   <main>
     <h2>Getting started</h2>
     <p>
-      There is no real API. Use this page to verify that llms-gen buckets documentation-style
-      pages correctly when ranking your <code>llms.txt</code> output.
+      This entire reference is static HTML pretending to be an API. The previous revision was short;
+      this one lists imaginary endpoints so your generator’s “Docs” bucket picks up different anchors.
     </p>
+    <h3>Base URL and versioning</h3>
+    <p>Base: <code>https://example.invalid/v2026-05</code>. Breaking changes ship whenever this fixture is edited.</p>
+    <h3>Core resources</h3>
+    <ul>
+      <li><code>GET /fixtures/projects</code> — paginated list of nonexistent projects.</li>
+      <li><code>POST /fixtures/projects/{id}/rotate</code> — rotates credentials that do not exist.</li>
+      <li><code>DELETE /fixtures/cache</code> — always returns 204 in your imagination.</li>
+    </ul>
     <h3>Authentication</h3>
-    <p>Not applicable. This is static HTML.</p>
+    <p>
+      Send header <code>Authorization: Bearer &lt;long random string&gt;</code>. The server will ignore it
+      because there is no server.
+    </p>
+    <h3>Rate limits</h3>
+    <p>1000 requests per second per IP, unless you exceed that, in which case we make up a new number.</p>
+    <h3>Error shape</h3>
+    <pre>{"error":{"code":"FIXTURE_ONLY","message":"You are crawling HTML."}}</pre>
   </main>
 </body>
 </html>

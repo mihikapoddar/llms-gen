@@ -3,13 +3,16 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Monitor Test Co — Home</title>
-  <meta name="description" content="Tiny static fixture site for testing llms-gen crawls and monitor webhooks locally." />
+  <title>Drastic Fixture Labs — Home (monitor stress test)</title>
+  <meta name="description" content="Major 2026 content refresh: synthetic enterprise copy for llms-gen ranking, bucket tests, and webhook hash verification after GitHub Pages deploy." />
 </head>
 <body>
   <header>
-    <h1>Monitor Test Co</h1>
-    <p>Fake company site for local crawl and monitoring tests.</p>
+    <h1>Drastic Fixture Labs</h1>
+    <p>
+      Synthetic “company” used only for crawl fixtures. This home page was rewritten in bulk so
+      monitor-linked jobs produce a clearly different <code>llms.txt</code> digest than earlier builds.
+    </p>
     <nav>
       <a href="index.html">Home</a>
       <a href="about.html">About</a>
@@ -20,12 +23,24 @@
     </nav>
   </header>
   <main>
-    <h2>Welcome</h2>
+    <h2>Welcome — major content revision</h2>
     <p>
-      Serve this folder with <code>python3 -m http.server 8765</code>, then point llms-gen at
-      <strong>http://127.0.0.1:8765/</strong> (or your deployed base URL). Edit <a href="changelog.html">changelog.html</a>
-      between monitor refreshes to change generated <code>llms.txt</code> and trigger webhooks.
+      Previously this fixture shipped one-liner jokes. This revision adds paragraphs of plausible
+      product language so trafilatura and the generator see a materially different corpus: fleet
+      observability for imaginary devices, SOC2-ready fiction, and a pretend 99.95% SLA that exists
+      only to move bytes in your monitor tests.
     </p>
+    <p>
+      Local dev: <code>python3 -m http.server 8765</code> and root <strong>http://127.0.0.1:8765/</strong>.
+      Production fixture: your GitHub Pages URL. After any substantive edit, wait for Pages to deploy,
+      then refresh the monitored site so webhooks can fire on hash change.
+    </p>
+    <h3>Imaginary capabilities (new section)</h3>
+    <ul>
+      <li>Retroactive incident narratives with zero incidents.</li>
+      <li>GraphQL gateway to nowhere; REST fallback to static files.</li>
+      <li>Row-level security on HTML that has no database.</li>
+    </ul>
   </main>
 </body>
 </html>
