@@ -30,6 +30,10 @@ build-backend = "setuptools.build_meta"
 where = ["src"]
 include = ["llms_gen*"]
 
+# Ship Jinja templates with the wheel/sdist (Docker `pip install` omits them without this).
+[tool.setuptools.package-data]
+llms_gen = ["templates/*.html"]
+
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
 asyncio_default_fixture_loop_scope = "function"
