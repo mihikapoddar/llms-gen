@@ -9,6 +9,8 @@ RUN uv pip install --system .
 ENV LLMS_GEN_DATABASE_URL=sqlite+aiosqlite:///./data/llms_gen.db
 RUN mkdir -p /app/data
 
-# Render (and some hosts) set PORT at runtime; default 8000 for local docker compose.
-EXPOSE 8000
-CMD ["sh", "-c", "exec uvicorn llms_gen.main:app --host 0.0.0.0 --port ${PORT:-8000}"]
+# Render sets PORT (default 10000 per https://render.com/docs/web-services#port-binding ).
+# If PORT were ever unset, binding 8000 while Render probes 10000 causes "no open ports" deploy failures.
+# Local: set PORT=8000 in docker-compose (see docker-compose.yml).
+EXPOSE 10000
+CMD ["sh", "-c", "exec uvicorn llms_gen.main:app --host 0.0.0.0 --port ${PORT:-10000}"]

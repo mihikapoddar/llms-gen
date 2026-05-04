@@ -38,7 +38,7 @@ Open [http://127.0.0.1:8000](http://127.0.0.1:8000).
 docker compose up --build
 ```
 
-The app listens on port **8000**. SQLite data persists in the `llms_data` Docker volume.
+The app listens on port **8000** (`PORT` is set in `docker-compose.yml`). SQLite data persists in the `llms_data` Docker volume. On **Render**, leave **`PORT`** unset in the dashboard so the platform injects it (usually `10000`); the image defaults to `10000` if `PORT` were missing so the health checker and bind port stay aligned.
 
 ## Configuration
 

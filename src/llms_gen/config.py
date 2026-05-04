@@ -9,6 +9,9 @@ class Settings(BaseSettings):
         env_file=".env",
         env_file_encoding="utf-8",
         extra="ignore",
+        # Render / dashboards often define a key with an empty value; without this, bool/int
+        # fields raise ValidationError at startup (then uvicorn shows CancelledError on shutdown).
+        env_ignore_empty=True,
     )
 
     database_url: str = "sqlite+aiosqlite:///./llms_gen.db"
