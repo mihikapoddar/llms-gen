@@ -780,7 +780,9 @@
     </a>
     <nav class="nav-links" aria-label="Resources">
       <a href="https://llmstxt.org/" target="_blank" rel="noopener">llmstxt.org</a>
+      {% if expose_openapi %}
       <a href="/docs" target="_blank" rel="noopener">API docs</a>
+      {% endif %}
     </nav>
   </header>
 
@@ -827,6 +829,14 @@
             <button type="submit" class="btn-primary" id="go">Generate llms.txt</button>
           </div>
           <p id="url-hint" class="hint" style="margin:0.4rem 0 0">Tip: bare domains work. We default to HTTPS.</p>
+
+          {% if api_key_required %}
+          <div class="api-key-block" style="margin-top:1rem;padding:0.85rem 1rem;border-radius:8px;border:1px solid var(--border);background:var(--card2)">
+            <label class="field-label" for="api-key">Operator API key</label>
+            <input id="api-key" name="api-key" type="password" autocomplete="off" placeholder="Required for /api on this server" aria-describedby="api-key-hint" style="width:100%;max-width:28rem" />
+            <p id="api-key-hint" class="hint" style="margin:0.35rem 0 0">Stored in this tab’s <code>sessionStorage</code> only (not sent to third parties). Use <code>X-LLMS-GEN-API-Key</code> or <code>Authorization: Bearer</code> from scripts.</p>
+          </div>
+          {% endif %}
 
           <div class="max-pages-block">
             <label class="field-label" for="max">Page limit</label>
@@ -976,12 +986,22 @@
     <div>
       <strong>Resources</strong>
       <a href="https://llmstxt.org/" target="_blank" rel="noopener">llmstxt.org specification</a><br />
+      {% if expose_openapi %}
       <a href="/docs" target="_blank" rel="noopener">Interactive API docs (Swagger)</a>
+      {% endif %}
     </div>
   </footer>
   <script>
     const DEFAULT_MAX_PAGES = 40;
+    const API_KEY_REQUIRED = {{ api_key_required | tojson }};
     const $ = (id) => document.getElementById(id);
+
+    function apiKeyHeader() {
+      if (!API_KEY_REQUIRED) return {};
+      const el = $("api-key");
+      const k = ((el && el.value) || sessionStorage.getItem("llms_gen_api_key") || "").trim();
+      return k ? { "X-LLMS-GEN-API-Key": k } : {};
+    }
 
     function readMaxPages() {
       const n = Number($("max").value);
@@ -999,6 +1019,18 @@
     const webhookInput = $("webhook-url");
     const goBtn = $("go");
     const copyBtn = $("copy-btn");
+
+    (function initApiKeyField() {
+      const el = $("api-key");
+      if (!el) return;
+      const saved = sessionStorage.getItem("llms_gen_api_key");
+      if (saved) el.value = saved;
+      el.addEventListener("change", () => {
+        const v = el.value.trim();
+        if (v) sessionStorage.setItem("llms_gen_api_key", v);
+        else sessionStorage.removeItem("llms_gen_api_key");
+      });
+    })();
 
     $("clear-url").addEventListener("click", () => {
       $("url").value = "";
@@ -1050,7 +1082,7 @@
 
     async function poll(jobId, started) {
       for (let i = 0; i < 600; i++) {
-        const r = await fetch("/api/jobs/" + jobId);
+        const r = await fetch("/api/jobs/" + jobId, { headers: { ...apiKeyHeader() } });
         if (!r.ok) throw new Error("Could not read job status.");
         const j = await r.json();
         if (j.status === "completed") return j;
@@ -1070,7 +1102,7 @@
       const body = { url, max_pages: maxPages, interval_hours: intervalHours, webhook_url: wh };
       const r = await fetch("/api/monitored-sites", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", ...apiKeyHeader() },
         body: JSON.stringify(body),
       });
       if (r.status === 201) return { ok: true, duplicate: false };
@@ -1097,6 +1129,15 @@
 
     $("f").addEventListener("submit", async (e) => {
       e.preventDefault();
+      if (API_KEY_REQUIRED) {
+        const ak = $("api-key");
+        const k = ((ak && ak.value) || sessionStorage.getItem("llms_gen_api_key") || "").trim();
+        if (!k) {
+          setStatus("fail", "Enter the operator API key — this server requires it for all /api access.");
+          if (ak) ak.focus();
+          return;
+        }
+      }
       if (monitorChk.checked && !(webhookInput.value || "").trim()) {
         setStatus("fail", "Enter a webhook URL when Monitor this site is enabled.");
         webhookInput.focus();
@@ -1115,7 +1156,7 @@
       try {
         const r = await fetch("/api/jobs", {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: { "Content-Type": "application/json", ...apiKeyHeader() },
           body: JSON.stringify({ url, max_pages: maxPages }),
         });
         if (!r.ok) {
@@ -1126,7 +1167,7 @@
         setStatus("running", "Job started. Crawling…");
         const job = await poll(id, t0);
         if (!job.artifact_id) throw new Error("No artifact produced.");
-        const art = await fetch("/api/artifacts/" + job.artifact_id);
+        const art = await fetch("/api/artifacts/" + job.artifact_id, { headers: { ...apiKeyHeader() } });
         if (!art.ok) throw new Error("Could not load the generated file.");
         const text = await art.text();
         out.textContent = text;

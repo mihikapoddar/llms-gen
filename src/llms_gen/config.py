@@ -12,6 +12,10 @@ class Settings(BaseSettings):
     )
 
     database_url: str = "sqlite+aiosqlite:///./llms_gen.db"
+    # When non-empty, all /api/* routes require X-LLMS-GEN-API-Key or Authorization: Bearer (same value).
+    api_key: str = ""
+    # When False, OpenAPI schema and /docs are disabled (recommended alongside api_key on public hosts).
+    expose_openapi: bool = True
     crawl_user_agent: str = "llms-gen/0.1 (https://github.com/llms-gen/llms-gen; automated llms.txt generator)"
     max_pages_per_job: int = 60
     fetch_timeout_s: float = 20.0

@@ -9,13 +9,17 @@ from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from llms_gen.api.deps import get_session
+from llms_gen.api.deps import get_session, require_api_key
 from llms_gen.config import get_settings
 from llms_gen.crawler.normalize import normalize_user_root_url
 from llms_gen.models.db import Job, JobStatus, MonitoredSite
 from llms_gen.services.job_runner import run_job_in_background
 
-router = APIRouter(prefix="/api/monitored-sites", tags=["monitored"])
+router = APIRouter(
+    prefix="/api/monitored-sites",
+    tags=["monitored"],
+    dependencies=[Depends(require_api_key)],
+)
 
 
 def _normalize_webhook(v: Optional[str]) -> Optional[str]:

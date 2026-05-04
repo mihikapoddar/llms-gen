@@ -34,11 +34,17 @@ async def lifespan(app: FastAPI):
             pass
 
 
+_cfg = get_settings()
+_openapi = _cfg.expose_openapi
+
 app = FastAPI(
     title="llms-gen",
     description="Generate llms.txt files from public websites",
     version="0.1.0",
     lifespan=lifespan,
+    docs_url="/docs" if _openapi else None,
+    redoc_url="/redoc" if _openapi else None,
+    openapi_url="/openapi.json" if _openapi else None,
 )
 app.include_router(jobs_router)
 app.include_router(monitored_router)
@@ -46,7 +52,15 @@ app.include_router(monitored_router)
 
 @app.get("/")
 async def index(request: Request):
-    return templates.TemplateResponse("index.html", {"request": request})
+    s = get_settings()
+    return templates.TemplateResponse(
+        "index.html",
+        {
+            "request": request,
+            "api_key_required": bool((s.api_key or "").strip()),
+            "expose_openapi": s.expose_openapi,
+        },
+    )
 
 
 @app.head("/")
