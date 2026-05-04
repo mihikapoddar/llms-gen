@@ -57,7 +57,6 @@ async def index(request: Request):
         "index.html",
         {
             "request": request,
-            "api_key_required": bool((s.api_key or "").strip()),
             "expose_openapi": s.expose_openapi,
         },
     )

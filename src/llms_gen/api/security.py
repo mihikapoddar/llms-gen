@@ -10,7 +10,7 @@ from llms_gen.config import get_settings
 
 
 async def require_api_key(request: Request) -> None:
-    """If ``LLMS_GEN_API_KEY`` is set, require ``X-LLMS-GEN-API-Key`` or ``Authorization: Bearer``."""
+    """If ``LLMS_GEN_API_KEY`` is set, require header or Bearer (used on selected routes only)."""
     expected = (get_settings().api_key or "").strip()
     if not expected:
         return

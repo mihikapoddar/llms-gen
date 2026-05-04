@@ -15,11 +15,7 @@ from llms_gen.crawler.normalize import normalize_user_root_url
 from llms_gen.models.db import Job, JobStatus, MonitoredSite
 from llms_gen.services.job_runner import run_job_in_background
 
-router = APIRouter(
-    prefix="/api/monitored-sites",
-    tags=["monitored"],
-    dependencies=[Depends(require_api_key)],
-)
+router = APIRouter(prefix="/api/monitored-sites", tags=["monitored"])
 
 
 def _normalize_webhook(v: Optional[str]) -> Optional[str]:
@@ -109,7 +105,11 @@ async def add_monitored_site(
     return site
 
 
-@router.get("", response_model=list[MonitoredOut])
+@router.get(
+    "",
+    response_model=list[MonitoredOut],
+    dependencies=[Depends(require_api_key)],
+)
 async def list_monitored_sites(
     session: AsyncSession = Depends(get_session),
 ) -> list[MonitoredSite]:
@@ -119,7 +119,11 @@ async def list_monitored_sites(
     return list(result.scalars().all())
 
 
-@router.get("/{site_id}", response_model=MonitoredOut)
+@router.get(
+    "/{site_id}",
+    response_model=MonitoredOut,
+    dependencies=[Depends(require_api_key)],
+)
 async def get_monitored_site(
     site_id: str,
     session: AsyncSession = Depends(get_session),
@@ -130,7 +134,11 @@ async def get_monitored_site(
     return site
 
 
-@router.patch("/{site_id}", response_model=MonitoredOut)
+@router.patch(
+    "/{site_id}",
+    response_model=MonitoredOut,
+    dependencies=[Depends(require_api_key)],
+)
 async def patch_monitored_site(
     site_id: str,
     body: MonitoredPatch,
@@ -151,7 +159,11 @@ async def patch_monitored_site(
     return site
 
 
-@router.delete("/{site_id}", status_code=204)
+@router.delete(
+    "/{site_id}",
+    status_code=204,
+    dependencies=[Depends(require_api_key)],
+)
 async def delete_monitored_site(
     site_id: str,
     session: AsyncSession = Depends(get_session),
@@ -163,7 +175,12 @@ async def delete_monitored_site(
     await session.commit()
 
 
-@router.post("/{site_id}/refresh", response_model=RefreshOut, status_code=202)
+@router.post(
+    "/{site_id}/refresh",
+    response_model=RefreshOut,
+    status_code=202,
+    dependencies=[Depends(require_api_key)],
+)
 async def refresh_monitored_site(
     site_id: str,
     background_tasks: BackgroundTasks,

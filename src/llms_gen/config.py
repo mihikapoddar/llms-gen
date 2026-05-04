@@ -15,7 +15,7 @@ class Settings(BaseSettings):
     )
 
     database_url: str = "sqlite+aiosqlite:///./llms_gen.db"
-    # When non-empty, all /api/* routes require X-LLMS-GEN-API-Key or Authorization: Bearer (same value).
+    # When non-empty, protected monitor-admin routes require X-LLMS-GEN-API-Key or Authorization: Bearer.
     api_key: str = ""
     # When False, OpenAPI schema and /docs are disabled (recommended alongside api_key on public hosts).
     expose_openapi: bool = True

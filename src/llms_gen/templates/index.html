@@ -582,7 +582,6 @@
       transition: transform 0.2s;
     }
     .webhook-help-drawer[open] .chev { transform: rotate(90deg); }
-    .api-key-advanced { margin-top: 1rem; }
     .webhook-help-panel {
       padding: 1rem 1.15rem 1.15rem;
       font-size: 0.875rem;
@@ -591,25 +590,6 @@
       max-height: min(52vh, 400px);
       overflow-y: auto;
       overscroll-behavior: contain;
-    }
-    .webhook-help-panel.api-key-advanced-panel {
-      max-height: none;
-      overflow: visible;
-    }
-    .api-key-advanced-panel .field-label { margin-bottom: 0.45rem; }
-    .api-key-advanced-panel .input-wrap { margin-top: 0.2rem; }
-    .api-key-advanced-panel .input-wrap input#api-key.api-key-input {
-      min-height: 48px;
-      font-family: var(--mono);
-      font-size: 0.9375rem;
-      /* Obscure like a password field without type=password (better paste + fewer manager quirks). */
-      -webkit-text-security: disc;
-    }
-    .api-key-advanced-panel .hint { margin: 0.65rem 0 0; }
-    .api-key-live-status:not([hidden]) {
-      margin-top: 0.45rem;
-      color: var(--ok);
-      font-size: 0.8125rem;
     }
     .webhook-help-section {
       padding: 0.85rem 0;
@@ -852,39 +832,6 @@
           </div>
           <p id="url-hint" class="hint" style="margin:0.4rem 0 0">Tip: bare domains work. We default to HTTPS.</p>
 
-          {% if api_key_required %}
-          <details class="webhook-help-drawer api-key-advanced" id="api-key-advanced">
-            <summary>
-              <span class="help-q" aria-hidden="true">A</span>
-              <span class="webhook-help-summary-text">Advanced — operator API access</span>
-              <span class="chev" aria-hidden="true">▸</span>
-            </summary>
-            <div class="webhook-help-panel api-key-advanced-panel" role="region" aria-label="Operator API key">
-              <label class="field-label" for="api-key">API key</label>
-              <div class="input-wrap">
-                <input
-                  id="api-key"
-                  name="api-key"
-                  class="api-key-input"
-                  type="text"
-                  inputmode="text"
-                  autocomplete="off"
-                  autocapitalize="off"
-                  autocorrect="off"
-                  spellcheck="false"
-                  placeholder="Paste key to use /api from this browser"
-                  aria-describedby="api-key-hint api-key-live-status"
-                />
-              </div>
-              <p id="api-key-live-status" class="hint api-key-live-status" role="status" aria-live="polite" hidden></p>
-              <p id="api-key-hint" class="hint">
-                Stored in this tab’s <code>sessionStorage</code> as you type (not sent to third parties). From scripts, send
-                <code>X-LLMS-GEN-API-Key</code> or <code>Authorization: Bearer</code>.
-              </p>
-            </div>
-          </details>
-          {% endif %}
-
           <div class="max-pages-block">
             <label class="field-label" for="max">Page limit</label>
             <div class="max-pages-inline">
@@ -1040,46 +987,7 @@
   </footer>
   <script>
     const DEFAULT_MAX_PAGES = 40;
-    const API_KEY_REQUIRED = {{ api_key_required | tojson }};
     const $ = (id) => document.getElementById(id);
-
-    function normalizeApiKeyRaw(s) {
-      return (s || "")
-        .replace(/^\uFEFF/, "")
-        .replace(/[\r\n]+/g, "")
-        .replace(/\u200b/g, "")
-        .trim();
-    }
-
-    function syncApiKeyFromInput() {
-      const el = $("api-key");
-      const live = $("api-key-live-status");
-      if (!el) return;
-      const raw = el.value;
-      const normalized = normalizeApiKeyRaw(raw);
-      if (normalized !== raw) el.value = normalized;
-      const key = normalized;
-      if (key) sessionStorage.setItem("llms_gen_api_key", key);
-      else sessionStorage.removeItem("llms_gen_api_key");
-      if (live) {
-        if (key) {
-          live.textContent = "Remembered for this tab — used when you click Generate.";
-          live.hidden = false;
-        } else {
-          live.textContent = "";
-          live.hidden = true;
-        }
-      }
-    }
-
-    function apiKeyHeader() {
-      if (!API_KEY_REQUIRED) return {};
-      const el = $("api-key");
-      const k = normalizeApiKeyRaw(
-        (el && el.value) || sessionStorage.getItem("llms_gen_api_key") || ""
-      );
-      return k ? { "X-LLMS-GEN-API-Key": k } : {};
-    }
 
     function readMaxPages() {
       const n = Number($("max").value);
@@ -1097,18 +1005,6 @@
     const webhookInput = $("webhook-url");
     const goBtn = $("go");
     const copyBtn = $("copy-btn");
-
-    (function initApiKeyField() {
-      const el = $("api-key");
-      if (!el) return;
-      const saved = sessionStorage.getItem("llms_gen_api_key");
-      if (saved) el.value = saved;
-      syncApiKeyFromInput();
-      el.addEventListener("input", syncApiKeyFromInput);
-      el.addEventListener("paste", () => {
-        requestAnimationFrame(syncApiKeyFromInput);
-      });
-    })();
 
     $("clear-url").addEventListener("click", () => {
       $("url").value = "";
@@ -1160,7 +1056,7 @@
 
     async function poll(jobId, started) {
       for (let i = 0; i < 600; i++) {
-        const r = await fetch("/api/jobs/" + jobId, { headers: { ...apiKeyHeader() } });
+        const r = await fetch("/api/jobs/" + jobId);
         if (!r.ok) throw new Error("Could not read job status.");
         const j = await r.json();
         if (j.status === "completed") return j;
@@ -1180,7 +1076,7 @@
       const body = { url, max_pages: maxPages, interval_hours: intervalHours, webhook_url: wh };
       const r = await fetch("/api/monitored-sites", {
         method: "POST",
-        headers: { "Content-Type": "application/json", ...apiKeyHeader() },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
       });
       if (r.status === 201) return { ok: true, duplicate: false };
@@ -1207,20 +1103,6 @@
 
     $("f").addEventListener("submit", async (e) => {
       e.preventDefault();
-      if (API_KEY_REQUIRED) {
-        syncApiKeyFromInput();
-        const ak = $("api-key");
-        const k = normalizeApiKeyRaw(
-          (ak && ak.value) || sessionStorage.getItem("llms_gen_api_key") || ""
-        );
-        if (!k) {
-          setStatus("fail", "Enter the operator API key — this server requires it for all /api access.");
-          const adv = $("api-key-advanced");
-          if (adv && "open" in adv) adv.open = true;
-          if (ak) ak.focus();
-          return;
-        }
-      }
       if (monitorChk.checked && !(webhookInput.value || "").trim()) {
         setStatus("fail", "Enter a webhook URL when Monitor this site is enabled.");
         webhookInput.focus();
@@ -1239,7 +1121,7 @@
       try {
         const r = await fetch("/api/jobs", {
           method: "POST",
-          headers: { "Content-Type": "application/json", ...apiKeyHeader() },
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ url, max_pages: maxPages }),
         });
         if (!r.ok) {
@@ -1250,7 +1132,7 @@
         setStatus("running", "Job started. Crawling…");
         const job = await poll(id, t0);
         if (!job.artifact_id) throw new Error("No artifact produced.");
-        const art = await fetch("/api/artifacts/" + job.artifact_id, { headers: { ...apiKeyHeader() } });
+        const art = await fetch("/api/artifacts/" + job.artifact_id);
         if (!art.ok) throw new Error("Could not load the generated file.");
         const text = await art.text();
         out.textContent = text;

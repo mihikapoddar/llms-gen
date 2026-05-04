@@ -7,7 +7,7 @@ from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
 from pydantic import BaseModel, Field, field_validator
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from llms_gen.api.deps import get_session, require_api_key
+from llms_gen.api.deps import get_session
 from llms_gen.config import get_settings
 from llms_gen.crawler.normalize import normalize_user_root_url
 from llms_gen.models.db import Job, JobStatus
@@ -15,11 +15,7 @@ from llms_gen.services.job_runner import run_job_in_background
 
 logger = logging.getLogger(__name__)
 
-router = APIRouter(
-    prefix="/api",
-    tags=["jobs"],
-    dependencies=[Depends(require_api_key)],
-)
+router = APIRouter(prefix="/api", tags=["jobs"])
 
 
 class JobCreate(BaseModel):

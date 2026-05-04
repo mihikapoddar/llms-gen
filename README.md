@@ -52,7 +52,7 @@ The app listens on port **8000** (`PORT` is set in `docker-compose.yml`). SQLite
 | `LLMS_GEN_MONITOR_ENABLED` | `true` | Background re-crawl scheduler |
 | `LLMS_GEN_MONITOR_POLL_INTERVAL_S` | `300` | How often to check due monitors (seconds) |
 | `LLMS_GEN_PUBLIC_BASE_URL` | *(empty)* | Public site origin for absolute `artifact_path` in webhook payloads |
-| `LLMS_GEN_API_KEY` | *(empty)* | If set, all `/api/*` routes require header `X-LLMS-GEN-API-Key` or `Authorization: Bearer` with this exact value |
+| `LLMS_GEN_API_KEY` | *(empty)* | If set, **monitor admin** routes require `X-LLMS-GEN-API-Key` or `Authorization: Bearer`: `GET/GET/PATCH/DELETE` monitored sites and `POST …/refresh`. **Jobs** (`POST /api/jobs`, poll, artifacts) and **`POST /api/monitored-sites`** (register) stay public for the Generate UI |
 | `LLMS_GEN_EXPOSE_OPENAPI` | `true` | Set `false` on public hosts to disable `/docs`, `/redoc`, and `/openapi.json` |
 
 ## API
@@ -64,9 +64,9 @@ The app listens on port **8000** (`PORT` is set in `docker-compose.yml`). SQLite
 
 ## Monitoring and webhooks
 
-There is **no login** and **no per-user dashboard**: every monitor row lives in the same database as the rest of the app. Treat this as **single-tenant** (your laptop, your company VPC, or a server you lock down). If you expose the API to the internet, set **`LLMS_GEN_API_KEY`** (and usually **`LLMS_GEN_EXPOSE_OPENAPI=false`**) so anonymous clients cannot crawl, read artifacts, list monitors, or register webhooks—or put the app behind reverse-proxy auth or a private network.
+There is **no login** and **no per-user dashboard**: every monitor row lives in the same database as the rest of the app. Treat this as **single-tenant** (your laptop, your company VPC, or a server you lock down). On the public internet, use **`LLMS_GEN_EXPOSE_OPENAPI=false`** so Swagger/OpenAPI is not advertised, and optionally **`LLMS_GEN_API_KEY`** so only callers with the secret can **list, inspect, edit, delete, or manually refresh** monitors—while **Generate** (crawl + download) and **registering a monitor** from the form stay usable without that key.
 
-The **Generate** page can register a monitor (checkbox, interval, **webhook URL required** when the box is checked) after a successful crawl—the same as **`POST /api/monitored-sites`**. The form enforces a webhook so you get change notifications without an on-page monitor list. The HTTP API still allows omitting **`webhook_url`** if you only poll **`GET /api/monitored-sites`**. That UI **does not show** monitored URLs; use **`GET /api/monitored-sites`** when you need to list or audit rows.
+The **Generate** page can register a monitor (checkbox, interval, **webhook URL required** when the box is checked) after a successful crawl—the same as **`POST /api/monitored-sites`** (no API key required when that route is public). The form does not list monitored URLs; use **`GET /api/monitored-sites`** with the operator key when **`LLMS_GEN_API_KEY`** is set, or omit the key when it is unset.
 
 ### How scheduling works
 
