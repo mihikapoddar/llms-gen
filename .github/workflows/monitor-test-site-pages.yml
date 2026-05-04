@@ -1,0 +1,66 @@
+# Publishes fixtures/monitor-test-site to GitHub Pages (project site:
+# https://<owner>.github.io/<repo>/). Rewrites sitemap.xml, robots.txt, and
+# index.html so absolute URLs match the live origin.
+name: Deploy monitor test site (GitHub Pages)
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "fixtures/monitor-test-site/**"
+      - ".github/workflows/monitor-test-site-pages.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: monitor-test-site-pages
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Prepare site (public base URL)
+        run: |
+          python3 <<'PY'
+          import os, pathlib, shutil
+
+          owner = os.environ["GITHUB_REPOSITORY_OWNER"].lower()
+          repo = os.environ["GITHUB_REPOSITORY"].split("/")[1].lower()
+          base = f"https://{owner}.github.io/{repo}"
+          src = pathlib.Path("fixtures/monitor-test-site")
+          dest = pathlib.Path(os.environ["RUNNER_TEMP"]) / "site"
+          if dest.exists():
+              shutil.rmtree(dest)
+          shutil.copytree(src, dest)
+
+          old = "http://127.0.0.1:8765"
+          for name in ("sitemap.xml", "robots.txt"):
+              p = dest / name
+              text = p.read_text(encoding="utf-8")
+              if old not in text:
+                  raise SystemExit(f"expected {old!r} in {p}")
+              p.write_text(text.replace(old, base), encoding="utf-8")
+
+          idx = dest / "index.html"
+          idx.write_text(idx.read_text(encoding="utf-8").replace(old, base), encoding="utf-8")
+          print("Base URL:", base)
+          PY
+
+      - uses: actions/configure-pages@v5
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: ${{ runner.temp }}/site
+
+      - id: deployment
+        uses: actions/deploy-pages@v4
