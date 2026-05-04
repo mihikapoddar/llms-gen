@@ -50,6 +50,14 @@ app.include_router(jobs_router)
 app.include_router(monitored_router)
 
 
+def _artifact_link_base(request: Request, public_base_url: str) -> str:
+    """Origin for artifact URLs in UI copy; env overrides request (e.g. behind reverse proxy)."""
+    pub = (public_base_url or "").strip().rstrip("/")
+    if pub:
+        return pub
+    return str(request.base_url).rstrip("/")
+
+
 @app.get("/")
 async def index(request: Request):
     s = get_settings()
@@ -58,7 +66,7 @@ async def index(request: Request):
         {
             "request": request,
             "expose_openapi": s.expose_openapi,
-            "public_base_url": s.public_base_url,
+            "artifact_link_base": _artifact_link_base(request, s.public_base_url),
         },
     )
 

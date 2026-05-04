@@ -744,14 +744,8 @@
       margin: 0 auto;
       padding: 2.5rem 1.25rem 2rem;
       border-top: 1px solid var(--border);
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 1.5rem;
       font-size: 0.8125rem;
       color: var(--muted);
-    }
-    @media (max-width: 560px) {
-      .site-footer { grid-template-columns: 1fr; }
     }
     .site-footer strong {
       display: block;
@@ -903,18 +897,12 @@
                         </tr>
                         <tr>
                           <td><code>artifact_path</code></td>
-                          <td>
-                            {% if public_base_url %}
-                            Absolute URL to the file, e.g. <code>{{ public_base_url }}/api/artifacts/{{ "{job_id}" }}</code> (same <code>job_id</code> as in the JSON).
-                            {% else %}
-                            Relative path <code>/api/artifacts/{{ "{job_id}" }}</code>. Set env <code>LLMS_GEN_PUBLIC_BASE_URL</code> (e.g. <code>https://your-app.example.com</code>) so webhooks include a full URL receivers can fetch without knowing this host.
-                            {% endif %}
-                          </td>
+                          <td>HTTPS URL to the file, e.g. <code>{{ artifact_link_base }}/api/artifacts/{{ "{job_id}" }}</code> — same <code>job_id</code> as in this JSON.</td>
                         </tr>
                       </tbody>
                     </table>
                     </div>
-                    <p class="webhook-fetch-hint">Download the generated file with <code>GET /api/artifacts/{job_id}</code> using the same <code>job_id</code> as in the JSON{% if public_base_url %} (full URL: <code>{{ public_base_url }}/api/artifacts/{{ "{job_id}" }}</code>){% endif %}.</p>
+                    <p class="webhook-fetch-hint">Download with <code>GET {{ artifact_link_base }}/api/artifacts/{{ "{job_id}" }}</code> (same <code>job_id</code> as in the JSON).</p>
                   </div>
                   <div class="webhook-help-section">
                     <h4>Zapier</h4>
@@ -978,11 +966,6 @@
   </div>
 
   <footer class="site-footer">
-    <div>
-      <strong>HTTP API</strong>
-      <span><code>POST /api/jobs</code> · <code>GET /api/jobs/:id</code> · <code>GET /api/artifacts/:id</code></span><br />
-      <span style="margin-top:0.35rem;display:inline-block"><code>/api/monitored-sites</code> — schedules &amp; change webhooks (integration guide under Webhook URL on the form)</span>
-    </div>
     <div>
       <strong>Resources</strong>
       <a href="https://llmstxt.org/" target="_blank" rel="noopener">llmstxt.org specification</a><br />
