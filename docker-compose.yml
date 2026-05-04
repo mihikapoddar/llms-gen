@@ -1,0 +1,12 @@
+services:
+  web:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      LLMS_GEN_DATABASE_URL: sqlite+aiosqlite:///./data/llms_gen.db
+    volumes:
+      - llms_data:/app/data
+
+volumes:
+  llms_data:
